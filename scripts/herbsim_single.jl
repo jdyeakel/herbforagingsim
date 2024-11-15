@@ -14,7 +14,7 @@ using StatsPlots
 
 #HERBIVORE
 #Define mass of herbivore
-mass = 100;
+mass = 10^1.5;
 #Define tooth and gut type of herbivore
 teeth = "bunodont"; # bunodont, acute/obtuse lophs, lophs and non-flat, lophs and flat
 gut_type = "caecum"; # caecum, colon, non-rumen foregut, rumen foregut
@@ -27,12 +27,12 @@ tmax_bout, tmax_bout_upper95 = foragingtime(mass) .* (60*60) #hours * 60 min/hou
 #Set richness
 # rho = 1*10^-9; #This is very small, because we have set mu = 1
 # rhoexp = -6.19;
-rhoexp = -7.07;
+rhoexp = -6.7 #-7.07;
 rho = 1*10^rhoexp
 
 #Define resource traits
 res_traits = (mu = 1, alpha = 3, edensity = 18.2);
-zeta = 1.5;
+zeta = 1.;
 mu = res_traits[:mu];
 alpha = res_traits[:alpha];
 edensity = res_traits[:edensity]; 
@@ -40,21 +40,21 @@ edensity = res_traits[:edensity];
 configurations = 20000; #works fine - 100000 for more perfect distributions
 
 # This provides a return distribution
-@time gains, costs, probs = withindaysim(rho,alpha,mu,zeta,edensity,mass,teeth,tmax_bout,configurations);
+@time gains, costs, prob = withindaysim(rho,alpha,mu,zeta,edensity,mass,teeth,gut_type,tmax_bout,configurations);
 
 
 #Confirmed - these are the gains
-UnicodePlots.lineplot(gains,sum(probs,dims=1)')
+UnicodePlots.lineplot(gains,sum(prob,dims=1)')
 #Confirmed - these are the costs
-UnicodePlots.lineplot(costs,sum(probs,dims=2))
+UnicodePlots.lineplot(costs,sum(prob,dims=2))
 
-UnicodePlots.heatmap(probs)
+UnicodePlots.heatmap(prob)
 
 
 
 cyears = expectedlifetime(mass); #Mean expected lifespan (yrs); Calder 1984; 10;
 p_bad = 0.05; #Probability of a bad day (no autorcorrelation)
-gdaily, cdaily, cgut, cfat, cfat_synthesizing = acrossdaysim(gains,costs,probs,edensity,mass,gut_type,cyears,p_bad);
+gdaily, cdaily, cgut, cfat, cfat_synthesizing = acrossdaysim(gains,costs,prob,edensity,mass,gut_type,cyears,p_bad);
 relfatres = cfat/maxfatstorage(mass,37.7)[1];
 Plots.plot(collect(1:length(relfatres))./365,relfatres,
             xlabel="Time (years)", 

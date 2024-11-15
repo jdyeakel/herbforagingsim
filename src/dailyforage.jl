@@ -1,4 +1,4 @@
-function dailyforage(mass,teeth,rho,mu,alpha,zeta,edensity,tmax_bout)
+function dailyforage(mass,gut_type,teeth,rho,mu,alpha,zeta,edensity,tmax_bout)
 
     bcost_kJps, fcost_kJps = metabolic_cost(mass);
 
@@ -12,6 +12,8 @@ function dailyforage(mass,teeth,rho,mu,alpha,zeta,edensity,tmax_bout)
     chewrate = chew_allo(mass, teeth); #g/s
     tchewgram = 1/chewrate; #s/g
     tchew = tchewgram * beta; #s/g * g/bite = s/bite
+
+    maxgut = gut_capacity_g(mass, gut_type) #grams
 
     #Consumer population density: individuals/m^2
     n = indperarea(mass); #individuals/m^2
@@ -34,7 +36,7 @@ function dailyforage(mass,teeth,rho,mu,alpha,zeta,edensity,tmax_bout)
     t=0.0;
 
     #Simulate daily returns and costs
-    while t < tmax_bout
+    while t < tmax_bout && gut < maxgut
         
         # tic += 1
 
@@ -67,11 +69,14 @@ function dailyforage(mass,teeth,rho,mu,alpha,zeta,edensity,tmax_bout)
 
     end
 
+
     #kJ gains
     gains = gut * edensity; #grams * kJ/gram = kJ returns
 
     #Non-forage time
-    t_rest = (24*60*60) - tmax_bout;
+    #NOTE: changed tmax_bout to t, because you can stop if your gut fills, such that t < tmax_bout, in which case, the remainder is rest.
+    #11/15/2024
+    t_rest = (24*60*60) - t; #tmax_bout;
 
     #kJ costs
     costs = fcost_kJps*t_travel + bcost_kJps*(t_chew + t_rest);

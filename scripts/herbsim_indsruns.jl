@@ -40,7 +40,7 @@ gains_inds,
 costs_inds, 
 gut_inds, 
 fat_inds, 
-fatsynth_inds = herbsim_individuals(mass,teeth,gut_type,rhoexp,mu,alpha,edensity,zeta,configurations,p_bad,runs)
+fatsynth_inds = herbsim_individuals(mass,teeth,gut_type,rhoexp,mu,alpha,edensity,zeta,configurations,p_bad,runs);
 relfat_inds = fat_inds/maxfatstorage(mass,37.7)[1];
 
 # PLOT fat reserves for individuals across time

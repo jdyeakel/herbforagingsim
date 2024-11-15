@@ -6,6 +6,7 @@ function withindaysim(
     edensity, # Resource energy density kJ/gram
     mass, # KILOGRAMS
     teeth, # bunodont, acute/obtuse lophs, lophs and non-flat, lophs and flat
+    gut_type,
     tmax_bout,
     configurations
     )
@@ -29,7 +30,7 @@ function withindaysim(
     gains = Vector{Float64}(undef, configurations)
     costs = Vector{Float64}(undef, configurations)
     @threads for i in 1:configurations
-        gains_daily, costs_daily = dailyforage(mass, teeth, rho, mu, alpha, zeta, edensity, tmax_bout)
+        gains_daily, costs_daily = dailyforage(mass, gut_type, teeth, rho, mu, alpha, zeta, edensity, tmax_bout)
         
         # Store results directly in preallocated arrays
         gains[i] = gains_daily

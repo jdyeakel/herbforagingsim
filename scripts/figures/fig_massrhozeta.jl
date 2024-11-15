@@ -59,3 +59,47 @@ for i=2:l_zetavec
     linewidth=line_width);
 end; p
 Plots.savefig(p, "/Users/jdyeakel/Dropbox/PostDoc/2024_herbforaging/figures/fig_massrhozeta.pdf")
+
+
+# Strength of selection = Delta rhomin / Delta mass
+Delta_mass = diff(massvec)
+Delta_rhomin = diff(rhomin[:,1])
+Delta_rhomin[Delta_rhomin .== 0] .= NaN
+selstrength = Delta_rhomin ./ Delta_mass
+pos_noNaN = findall(x -> !isnan(x), selstrength)
+
+ps = Plots.scatter(massvec[2:end][pos_noNaN],abs.(Delta_rhomin[pos_noNaN]),
+    xlabel="Mass (kg)", 
+    ylabel="Strength of Selection",
+    xlims=(10^1.5,10^4.5),
+    xscale=:log10,
+    yscale=:log10,
+    legend=false,
+    color = color_scheme[1], 
+    linewidth=line_width,
+    framestyle=:box,  # Ensures all four sides are framed
+    );
+Plots.plot!(ps,massvec[2:end][pos_noNaN],abs.(Delta_rhomin[pos_noNaN]),
+    linewidth=line_width,
+    color = color_scheme[1])
+
+for j=2:l_zetavec
+    Delta_rhomin = diff(rhomin[:,j])
+    Delta_rhomin[Delta_rhomin .== 0] .= NaN
+    selstrength = Delta_rhomin ./ Delta_mass
+    pos_noNaN = findall(x -> !isnan(x), selstrength)
+    
+    Plots.scatter!(ps,massvec[2:end][pos_noNaN],abs.(Delta_rhomin[pos_noNaN]),
+    xscale=:log10,
+    yscale=:log10,
+    color = color_scheme[j], 
+    linewidth=line_width);
+    
+    Plots.plot!(ps,massvec[2:end][pos_noNaN],abs.(Delta_rhomin[pos_noNaN]),
+    linewidth=line_width,
+    color = color_scheme[j])
+end
+ps
+
+Plots.savefig(ps, "/Users/jdyeakel/Dropbox/PostDoc/2024_herbforaging/figures/fig_massrhozeta_strength.pdf")
+
