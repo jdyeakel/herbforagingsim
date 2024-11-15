@@ -72,8 +72,8 @@ fatCV = Array{Float64}(undef,l_massvec,l_rhoexpvec,l_zetavec);
 end
 
 filename = smartpath("data/simdata/massrhozeta.jld2")
-@save filename survival fatmean fatCV
-
+# @save filename survival fatmean fatCV
+@save filename Dict(n => getfield(Main, n) for n in setdiff(names(Main), [:Base, :Core, :Main]))
 
 # UnicodePlots.heatmap(survival)
 

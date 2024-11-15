@@ -67,8 +67,12 @@ fatCV = Array{Float64}(undef,l_rhoexpvec,l_zetavec);
     
 end
 
-path = joinpath(homedir(), "Dropbox/PostDoc/2024_Anna_bse/herbforaging/herbforagingsim/data/simdata/rhozeta.jld2")
-@save path survival fatmean fatCV
+# path = joinpath(homedir(), "Dropbox/PostDoc/2024_Anna_bse/herbforaging/herbforagingsim/data/simdata/rhozeta.jld2")
+# @save path survival fatmean fatCV
+
+filename = smartpath("data/simdata/rhozeta.jld2")
+vars_to_save = Dict(n => getfield(Main, n) for n in setdiff(names(Main), [:Base, :Core, :Main]))
+@save filename vars_to_save
 
 
 UnicodePlots.heatmap(survival)
