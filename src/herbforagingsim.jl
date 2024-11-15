@@ -15,6 +15,7 @@ include("gc_sample.jl")
 include("decompose_to_integer_components.jl")
 include("herbsim_individuals.jl")
 include("findrhomin.jl")
+include("smartpath.jl")
 
 export 
 
@@ -53,7 +54,8 @@ calculate_histogram,
 find_bin_index,
 gc_sample,
 decompose_to_integer_components,
-findrhomin
+findrhomin,
+smartpath
 
 
 

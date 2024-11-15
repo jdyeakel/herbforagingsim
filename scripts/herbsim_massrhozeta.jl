@@ -71,8 +71,8 @@ fatCV = Array{Float64}(undef,l_massvec,l_rhoexpvec,l_zetavec);
     end
 end
 
-path = joinpath(homedir(), "Dropbox/PostDoc/2024_Anna_bse/herbforaging/herbforagingsim/data/simdata/massrhozeta.jld2")
-@save path survival fatmean fatCV
+filename = smartpath("data/simdata/massrhozeta.jld2")
+@save filename survival fatmean fatCV
 
 
 # UnicodePlots.heatmap(survival)
