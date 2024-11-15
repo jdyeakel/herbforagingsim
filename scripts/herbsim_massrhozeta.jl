@@ -15,7 +15,7 @@ using ProgressMeter
 
 #HERBIVORE
 #Define mass of herbivore
-massexpvec = collect(1.5:0.1:4.4);
+massexpvec = collect(1.5:0.05:4.4);
 massvec = 10 .^ massexpvec;
 l_massvec = length(massvec);
 #Define tooth and gut type of herbivore
@@ -35,7 +35,7 @@ edensity = 18.2;
 # zeta = 1.5;
 p_bad = 0.05;
 configurations = 20000; #works fine - 100000 for more perfect distributions
-runs = 100;
+runs = 200;
 
 rhoexpvec = collect(-7.2:0.05:-6.7);
 l_rhoexpvec = length(rhoexpvec);
