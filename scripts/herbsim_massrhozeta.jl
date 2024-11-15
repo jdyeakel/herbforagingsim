@@ -74,16 +74,3 @@ end
 filename = smartpath("data/simdata/massrhozeta.jld2")
 # @save filename survival fatmean fatCV
 @save filename Dict(n => getfield(Main, n) for n in setdiff(names(Main), [:Base, :Core, :Main]))
-
-# UnicodePlots.heatmap(survival)
-
-# UnicodePlots.heatmap((fatCV))
-
-# UnicodePlots.heatmap((fatmean))
-
-
-# #Extract rhomin
-# rhomin = Array{Float64}(undef,l_zetavec)
-# for j=1:l_zetavec
-#     rhomin[j] = findrhomin(rhoexpvec,survival[:,j]);
-# end
