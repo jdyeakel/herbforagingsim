@@ -37,7 +37,7 @@ p_bad = 0.05;
 configurations = 20000; #works fine - 100000 for more perfect distributions
 runs = 100;
 
-rhoexpvec = collect(-7.2:0.05:-6.8);
+rhoexpvec = collect(-7.2:0.05:-6.7);
 l_rhoexpvec = length(rhoexpvec);
 zetavec = collect(1:0.25:2);
 l_zetavec = length(zetavec);
