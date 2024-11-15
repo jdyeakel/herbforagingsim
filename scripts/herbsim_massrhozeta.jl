@@ -39,7 +39,7 @@ runs = 200;
 
 rhoexpvec = collect(-7.5:0.05:-6.7);
 l_rhoexpvec = length(rhoexpvec);
-zetavec = collect(1:0.5:2);
+zetavec = [1.0,1.75,2.0]; #collect(1:0.5:2);
 l_zetavec = length(zetavec);
 
 survival = Array{Float64}(undef,l_massvec,l_rhoexpvec,l_zetavec);
@@ -71,7 +71,7 @@ fatCV = Array{Float64}(undef,l_massvec,l_rhoexpvec,l_zetavec);
     end
 end
 
-filename = smartpath("data/simdata/massrhozeta.jld2")
+filename = smartpath("data/simdata/massrhozeta_maxgut.jld2")
 # @save filename survival fatmean fatCV
 vars_to_save = Dict(n => getfield(Main, n) for n in setdiff(names(Main), [:Base, :Core, :Main]))
 @save filename vars_to_save
