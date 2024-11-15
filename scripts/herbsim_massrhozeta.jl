@@ -75,15 +75,15 @@ path = joinpath(homedir(), "Dropbox/PostDoc/2024_Anna_bse/herbforaging/herbforag
 @save path survival fatmean fatCV
 
 
-UnicodePlots.heatmap(survival)
+# UnicodePlots.heatmap(survival)
 
-UnicodePlots.heatmap((fatCV))
+# UnicodePlots.heatmap((fatCV))
 
-UnicodePlots.heatmap((fatmean))
+# UnicodePlots.heatmap((fatmean))
 
 
-#Extract rhomin
-rhomin = Array{Float64}(undef,l_zetavec)
-for j=1:l_zetavec
-    rhomin[j] = findrhomin(rhoexpvec,survival[:,j]);
-end
+# #Extract rhomin
+# rhomin = Array{Float64}(undef,l_zetavec)
+# for j=1:l_zetavec
+#     rhomin[j] = findrhomin(rhoexpvec,survival[:,j]);
+# end
