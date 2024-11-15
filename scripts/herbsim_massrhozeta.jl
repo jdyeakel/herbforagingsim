@@ -73,4 +73,5 @@ end
 
 filename = smartpath("data/simdata/massrhozeta.jld2")
 # @save filename survival fatmean fatCV
-@save filename Dict(n => getfield(Main, n) for n in setdiff(names(Main), [:Base, :Core, :Main]))
+vars_to_save = Dict(n => getfield(Main, n) for n in setdiff(names(Main), [:Base, :Core, :Main]))
+@save filename vars_to_save
