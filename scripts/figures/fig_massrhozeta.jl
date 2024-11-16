@@ -17,7 +17,7 @@ using JLD2
 using ProgressMeter
 
 # Load variables from saved file
-filename = smartpath("data/simdata/massrhozeta_maxgut.jld2")
+filename = smartpath("data/simdata/massrhozeta_maxgut2.jld2")
 @load filename vars_to_save
 for (name, value) in vars_to_save
     @eval Main $(Symbol(name)) = $value
@@ -60,7 +60,7 @@ for i=2:l_zetavec
     color = color_scheme[i], 
     linewidth=line_width);
 end; p
-Plots.savefig(p, "/Users/jdyeakel/Dropbox/PostDoc/2024_herbforaging/figures/fig_massrhozeta_maxgut.pdf")
+Plots.savefig(p, "/Users/justinyeakel/Dropbox/PostDoc/2024_herbforaging/figures/fig_massrhozeta_maxgut2.pdf")
 
 
 # Strength of selection = Delta rhomin / Delta mass
@@ -103,5 +103,5 @@ for j=2:l_zetavec
 end
 ps
 
-Plots.savefig(ps, "/Users/jdyeakel/Dropbox/PostDoc/2024_herbforaging/figures/fig_massrhozeta_strength_maxgut.pdf")
+Plots.savefig(ps, "/Users/justinyeakel/Dropbox/PostDoc/2024_herbforaging/figures/fig_massrhozeta_strength_maxgut2.pdf")
 
