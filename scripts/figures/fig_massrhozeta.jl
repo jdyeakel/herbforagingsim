@@ -17,7 +17,7 @@ using JLD2
 using ProgressMeter
 
 # Load variables from saved file
-filename = smartpath("data/simdata/massrhozeta.jld2")
+filename = smartpath("data/simdata/massrhozeta_maxgut.jld2")
 @load filename vars_to_save
 for (name, value) in vars_to_save
     @eval Main $(Symbol(name)) = $value
@@ -43,22 +43,24 @@ num_colors = min(10, l_zetavec)  # Adjust the number of colors for distinctivene
 color_indices = range(0, stop=1, length=num_colors)
 color_scheme = [ColorSchemes.roma[c] for c in color_indices]  # Choose distinct colors
 
-p = Plots.plot(massvec,rhomin[:,1],
+p = Plots.scatter(massvec,rhomin[:,1],
             xlabel="Mass (kg)", 
             ylabel="Minimum rho",
+            xlims=(10^1.5,10^4.5),
             xscale=:log10,
             yscale=:log10,
             legend=false,
             color = color_scheme[1], 
-            linewidth=line_width);
+            linewidth=line_width,
+            framestyle=:box);
 for i=2:l_zetavec
-    Plots.plot!(p, massvec,rhomin[:,i],
+    Plots.scatter!(p, massvec,rhomin[:,i],
     xscale=:log10,
     yscale=:log10,
     color = color_scheme[i], 
     linewidth=line_width);
 end; p
-Plots.savefig(p, "/Users/jdyeakel/Dropbox/PostDoc/2024_herbforaging/figures/fig_massrhozeta.pdf")
+Plots.savefig(p, "/Users/jdyeakel/Dropbox/PostDoc/2024_herbforaging/figures/fig_massrhozeta_maxgut.pdf")
 
 
 # Strength of selection = Delta rhomin / Delta mass
@@ -77,7 +79,7 @@ ps = Plots.scatter(massvec[2:end][pos_noNaN],abs.(Delta_rhomin[pos_noNaN]),
     legend=false,
     color = color_scheme[1], 
     linewidth=line_width,
-    framestyle=:box,  # Ensures all four sides are framed
+    framestyle=:box  # Ensures all four sides are framed
     );
 Plots.plot!(ps,massvec[2:end][pos_noNaN],abs.(Delta_rhomin[pos_noNaN]),
     linewidth=line_width,
@@ -101,5 +103,5 @@ for j=2:l_zetavec
 end
 ps
 
-Plots.savefig(ps, "/Users/jdyeakel/Dropbox/PostDoc/2024_herbforaging/figures/fig_massrhozeta_strength.pdf")
+Plots.savefig(ps, "/Users/jdyeakel/Dropbox/PostDoc/2024_herbforaging/figures/fig_massrhozeta_strength_maxgut.pdf")
 

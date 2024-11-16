@@ -14,7 +14,7 @@ using StatsPlots
 
 #HERBIVORE
 #Define mass of herbivore
-mass = 10^1.5;
+mass = 10^2;
 #Define tooth and gut type of herbivore
 teeth = "bunodont"; # bunodont, acute/obtuse lophs, lophs and non-flat, lophs and flat
 gut_type = "caecum"; # caecum, colon, non-rumen foregut, rumen foregut
@@ -27,7 +27,7 @@ tmax_bout, tmax_bout_upper95 = foragingtime(mass) .* (60*60) #hours * 60 min/hou
 #Set richness
 # rho = 1*10^-9; #This is very small, because we have set mu = 1
 # rhoexp = -6.19;
-rhoexp = -6.7 #-7.07;
+rhoexp = -8.0 #-7.07; #-6.7 #
 rho = 1*10^rhoexp
 
 #Define resource traits
@@ -62,3 +62,29 @@ Plots.plot(collect(1:length(relfatres))./365,relfatres,
             legend=false)
 
 
+
+
+
+            
+# Compare simulated vs. expected for daily simulations
+
+# SIMULATED
+# This provides a return distribution
+@time gains, costs, prob = withindaysim(rho,alpha,mu,zeta,edensity,mass,teeth,gut_type,tmax_bout,configurations);
+
+
+#Confirmed - these are the gains
+UnicodePlots.lineplot(gains,sum(prob,dims=1)')
+#Confirmed - these are the costs
+UnicodePlots.lineplot(costs,sum(prob,dims=2))
+
+UnicodePlots.heatmap(prob)
+
+# EXPECTED NOTE: I don't think this works!
+E_gains, Var_gains, E_costs, Var_costs = dailyforage_expectedvalues(mass, gut_type, teeth, rho, mu, alpha, zeta, edensity, tmax_bout)
+
+#How does the mean gain compare to the simulated gain?
+[E_gains, dot(gains,sum(prob,dims=1)')]
+
+#How does the mean cost compare to the simulated cost?
+[E_costs, dot(costs,sum(prob,dims=2))]

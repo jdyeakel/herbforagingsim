@@ -16,6 +16,7 @@ include("decompose_to_integer_components.jl")
 include("herbsim_individuals.jl")
 include("findrhomin.jl")
 include("smartpath.jl")
+include("dailyforage_expectedvalues.jl")
 
 export 
 
@@ -55,7 +56,8 @@ find_bin_index,
 gc_sample,
 decompose_to_integer_components,
 findrhomin,
-smartpath
+smartpath,
+dailyforage_expectedvalues
 
 
 
