@@ -60,14 +60,14 @@ for i=2:l_zetavec
     color = color_scheme[i], 
     linewidth=line_width);
 end; p
-Plots.savefig(p, "/Users/justinyeakel/Dropbox/PostDoc/2024_herbforaging/figures/fig_massrhozeta_maxgut2.pdf")
+Plots.savefig(p, string(homedir(),"/Dropbox/PostDoc/2024_herbforaging/figures/fig_massrhozeta_maxgut2.pdf"))
 
 
 # Strength of selection = Delta rhomin / Delta mass
 Delta_mass = diff(massvec)
 Delta_rhomin = diff(rhomin[:,1])
 Delta_rhomin[Delta_rhomin .== 0] .= NaN
-selstrength = Delta_rhomin ./ Delta_mass
+selstrength = log.(abs.(Delta_rhomin)) ./ log.(Delta_mass)
 pos_noNaN = findall(x -> !isnan(x), selstrength)
 
 ps = Plots.scatter(massvec[2:end][pos_noNaN],abs.(Delta_rhomin[pos_noNaN]),
@@ -88,7 +88,7 @@ Plots.plot!(ps,massvec[2:end][pos_noNaN],abs.(Delta_rhomin[pos_noNaN]),
 for j=2:l_zetavec
     Delta_rhomin = diff(rhomin[:,j])
     Delta_rhomin[Delta_rhomin .== 0] .= NaN
-    selstrength = Delta_rhomin ./ Delta_mass
+    selstrength = log.(abs.(Delta_rhomin)) ./ log.(Delta_mass)
     pos_noNaN = findall(x -> !isnan(x), selstrength)
     
     Plots.scatter!(ps,massvec[2:end][pos_noNaN],abs.(Delta_rhomin[pos_noNaN]),
@@ -103,5 +103,45 @@ for j=2:l_zetavec
 end
 ps
 
-Plots.savefig(ps, "/Users/justinyeakel/Dropbox/PostDoc/2024_herbforaging/figures/fig_massrhozeta_strength_maxgut2.pdf")
+Plots.savefig(ps, string(homedir(),"/Dropbox/PostDoc/2024_herbforaging/figures/fig_massrhozeta_strength_maxgut2.pdf"))
 
+
+
+# Find the function corresponding to the fit.
+zetaindex = 3
+break_mass, index_break = find_breakpoint(massvec[1:35],rhomin[1:35,zetaindex])
+massvec1 = massvec[1:index_break]
+rhomin1 = rhomin[1:index_break,zetaindex]
+massvec2 = massvec[index_break+1:end]
+rhomin2 = rhomin[index_break+1:end,zetaindex]
+
+log_massvec1 = log.(massvec1)
+log_rhomin1 = log.(rhomin1)
+# Fit a line
+X1 = hcat(ones(length(log_massvec1)), log_massvec1)
+coeffs1 = X1 \ log_rhomin1  # Linear regression
+log_a1, b1 = coeffs1
+a1 = exp(log_a1)  # Convert log(a1) to a1
+
+log_massvec2 = log.(massvec2)
+log_rhomin2 = log.(rhomin2)
+# Fit a line
+X2 = hcat(ones(length(log_massvec2)), log_massvec2)
+coeffs2 = X2 \ log_rhomin2  # Linear regression
+log_a2, b2 = coeffs2
+a2 = exp(log_a2)  # Convert log(a2) to a2
+
+mass_range1 = range(minimum(massvec), stop=break_mass, length=100)
+rhomin_fit1 = a1 .* mass_range1 .^ b1;
+mass_range2 = range(break_mass, stop= maximum(massvec))
+rhomin_fit2 = a2 .* mass_range2 .^ b2;
+
+# Original data
+Plots.scatter(massvec, rhomin[:,zetaindex], label="Data", xlabel="Mass", ylabel="Rhomin", xscale=:log10, yscale=:log10)
+
+# Fitted function
+plot!(mass_range1, rhomin_fit1, label="Fit1", lw=2, xscale=:log10, yscale=:log10)
+plot!(mass_range2, rhomin_fit2, label="Fit1", lw=2, xscale=:log10, yscale=:log10)
+
+
+error_all, error_two_piece, F_value, p_value = compare_breakpoint_models(massvec[1:35], rhomin[1:35,zetaindex], index_break)

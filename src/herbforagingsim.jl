@@ -17,6 +17,8 @@ include("herbsim_individuals.jl")
 include("findrhomin.jl")
 include("smartpath.jl")
 include("dailyforage_expectedvalues.jl")
+include("find_breakpoint.jl")
+include("compare_breakpoint_models.jl")
 
 export 
 
@@ -57,7 +59,9 @@ gc_sample,
 decompose_to_integer_components,
 findrhomin,
 smartpath,
-dailyforage_expectedvalues
+dailyforage_expectedvalues,
+find_breakpoint,
+compare_breakpoint_models
 
 
 
