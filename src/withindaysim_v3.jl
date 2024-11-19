@@ -27,7 +27,7 @@ function withindaysim_split(
     # end
 
     # Number of splits for within-day simulations
-    n_splits = 2;
+    n_splits = 10;
     split_configurations = Int64(floor(configurations / n_splits))
 
     # Allocate memory for final gains and costs
