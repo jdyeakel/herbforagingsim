@@ -6,15 +6,17 @@ using DataFrames
 using Distributions
 using LinearAlgebra
 
+using Plots
 using UnicodePlots
-using JLD2
 using StatsPlots
+using JLD2
+using CSV
 
 
 
 #HERBIVORE
 #Define mass of herbivore
-mass = 10^2;
+mass = 10^1.5;
 #Define tooth and gut type of herbivore
 teeth = "bunodont"; # bunodont, acute/obtuse lophs, lophs and non-flat, lophs and flat
 gut_type = "caecum"; # caecum, colon, non-rumen foregut, rumen foregut
@@ -27,12 +29,12 @@ tmax_bout, tmax_bout_upper95 = foragingtime(mass) .* (60*60) #hours * 60 min/hou
 #Set richness
 # rho = 1*10^-9; #This is very small, because we have set mu = 1
 # rhoexp = -6.19;
-rhoexp = -8.0 #-7.07; #-6.7 #
+rhoexp = -7.07#-7.07; #-6.7 #
 rho = 1*10^rhoexp
 
 #Define resource traits
 res_traits = (mu = 1, alpha = 3, edensity = 18.2);
-zeta = 1.;
+zeta = 2.;
 mu = res_traits[:mu];
 alpha = res_traits[:alpha];
 edensity = res_traits[:edensity]; 
@@ -41,6 +43,8 @@ configurations = 20000; #works fine - 100000 for more perfect distributions
 
 # This provides a return distribution
 @time gains, costs, prob = withindaysim(rho,alpha,mu,zeta,edensity,mass,teeth,gut_type,tmax_bout,configurations);
+
+# @time gains, costs, prob = withindaysim_split(rho,alpha,mu,zeta,edensity,mass,teeth,gut_type,tmax_bout,configurations);
 
 
 #Confirmed - these are the gains
@@ -88,3 +92,28 @@ E_gains, Var_gains, E_costs, Var_costs = dailyforage_expectedvalues(mass, gut_ty
 
 #How does the mean cost compare to the simulated cost?
 [E_costs, dot(costs,sum(prob,dims=2))]
+
+
+
+
+#Comparing stochasticity with within day splits
+# This provides a return distribution
+nosplit = Array{Float64}(undef,50,2);
+split = Array{Float64}(undef,50,2);
+for i=1:50
+    @time gains, costs, prob = withindaysim(rho,alpha,mu,zeta,edensity,mass,teeth,gut_type,tmax_bout,configurations);
+
+    nosplit[i,:] = [mean(gains),mean(costs)]
+
+    @time gains, costs, prob = withindaysim_split(rho,alpha,mu,zeta,edensity,mass,teeth,gut_type,tmax_bout,configurations);
+
+    split[i,:] = [mean(gains),mean(costs)]
+
+end
+
+mean(nosplit,dims=1)
+mean(split,dims=1)
+
+
+std(nosplit,dims=1)
+std(split,dims=1)

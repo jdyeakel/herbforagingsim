@@ -1,8 +1,8 @@
-function findrhomin(rhoexpvec,probsurv)
+function findrhomin(rhoexpvec,probsurv,surv_threshold)
     
     rhovec = 10 .^ rhoexpvec;
 
-    first_nonzero_pos = findfirst(x -> x > 0.0, probsurv)
+    first_nonzero_pos = findfirst(x -> x > surv_threshold, probsurv)
     rhomin = first_nonzero_pos !== nothing ? rhovec[first_nonzero_pos] : maximum(rhovec) #missing
     return rhomin
 

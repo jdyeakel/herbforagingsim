@@ -1,4 +1,4 @@
-function find_breakpoint(massvec, rhominvec)
+function breakpoint_find(massvec, rhominvec)
     # Transform to log-log space
     log_massvec = log.(massvec)
     log_rhominvec = log.(rhominvec)

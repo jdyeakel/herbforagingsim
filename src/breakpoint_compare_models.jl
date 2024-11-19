@@ -1,4 +1,4 @@
-function compare_breakpoint_models(massvec, rhominvec, break_index)
+function breakpoint_compare_models(massvec, rhominvec, break_index)
     log_massvec = log.(massvec)
     log_rhominvec = log.(rhominvec)
 
@@ -24,7 +24,7 @@ function compare_breakpoint_models(massvec, rhominvec, break_index)
     p1=2;
 
     p2=4;   
-    
+
     n = length(massvec);
     
     F_value = ((error_all - total_error_two_piece) / (p2 - p1)) / (total_error_two_piece / (n - p2))

@@ -31,7 +31,7 @@ rhomin = Array{Float64}(undef,l_massvec,l_zetavec);
 for m=1:l_massvec
     mass_survival = survival[m,:,:];
     for j=1:l_zetavec
-        rhomin[m,j] = findrhomin(rhoexpvec,mass_survival[:,j]);
+        rhomin[m,j] = findrhomin(rhoexpvec,mass_survival[:,j],0.5);
     end
 end
 
@@ -108,40 +108,85 @@ Plots.savefig(ps, string(homedir(),"/Dropbox/PostDoc/2024_herbforaging/figures/f
 
 
 # Find the function corresponding to the fit.
-zetaindex = 3
-break_mass, index_break = find_breakpoint(massvec[1:35],rhomin[1:35,zetaindex])
-massvec1 = massvec[1:index_break]
-rhomin1 = rhomin[1:index_break,zetaindex]
-massvec2 = massvec[index_break+1:end]
-rhomin2 = rhomin[index_break+1:end,zetaindex]
+zetaindex = 1
 
-log_massvec1 = log.(massvec1)
-log_rhomin1 = log.(rhomin1)
-# Fit a line
-X1 = hcat(ones(length(log_massvec1)), log_massvec1)
-coeffs1 = X1 \ log_rhomin1  # Linear regression
-log_a1, b1 = coeffs1
-a1 = exp(log_a1)  # Convert log(a1) to a1
+break_mass, index_break = breakpoint_find(massvec[1:50],rhomin[1:50,zetaindex])
+a1, b1, a2, b2, mass_range1, rhomin_fit1, mass_range2, rhomin_fit2 = breakpoint_fit(massvec[1:50],rhomin[1:50,:],break_mass,index_break,zetaindex)
 
-log_massvec2 = log.(massvec2)
-log_rhomin2 = log.(rhomin2)
-# Fit a line
-X2 = hcat(ones(length(log_massvec2)), log_massvec2)
-coeffs2 = X2 \ log_rhomin2  # Linear regression
-log_a2, b2 = coeffs2
-a2 = exp(log_a2)  # Convert log(a2) to a2
-
-mass_range1 = range(minimum(massvec), stop=break_mass, length=100)
-rhomin_fit1 = a1 .* mass_range1 .^ b1;
-mass_range2 = range(break_mass, stop= maximum(massvec))
-rhomin_fit2 = a2 .* mass_range2 .^ b2;
+error_all, error_two_piece, F_value, p_value = breakpoint_compare_models(massvec[1:50], rhomin[1:50,zetaindex], index_break)
 
 # Original data
-Plots.scatter(massvec, rhomin[:,zetaindex], label="Data", xlabel="Mass", ylabel="Rhomin", xscale=:log10, yscale=:log10)
-
+pb = Plots.scatter(massvec, rhomin[:,zetaindex], label="Data", xlabel="Mass", ylabel="Rhomin", xscale=:log10, yscale=:log10)
 # Fitted function
-plot!(mass_range1, rhomin_fit1, label="Fit1", lw=2, xscale=:log10, yscale=:log10)
-plot!(mass_range2, rhomin_fit2, label="Fit1", lw=2, xscale=:log10, yscale=:log10)
+plot!(pb,mass_range1, rhomin_fit1, label="Fit1", lw=2, xscale=:log10, yscale=:log10)
+plot!(pb,mass_range2, rhomin_fit2, label="Fit1", lw=2, xscale=:log10, yscale=:log10)
+
+for i=3
+    zetaindex = i
+
+    break_mass, index_break = breakpoint_find(massvec[1:50],rhomin[1:50,zetaindex])
+    a1, b1, a2, b2, mass_range1, rhomin_fit1, mass_range2, rhomin_fit2 = breakpoint_fit(massvec[1:50],rhomin[1:50,:],break_mass,index_break,zetaindex)
+
+    error_all, error_two_piece, F_value, p_value = breakpoint_compare_models(massvec[1:50], rhomin[1:50,zetaindex], index_break)
+
+    # Original data
+    Plots.scatter!(pb,massvec, rhomin[:,zetaindex], label="Data", xlabel="Mass", ylabel="Rhomin", xscale=:log10, yscale=:log10)
+    # Fitted function
+    plot!(pb,mass_range1, rhomin_fit1, label="Fit1", lw=2, xscale=:log10, yscale=:log10)
+    plot!(pb,mass_range2, rhomin_fit2, label="Fit1", lw=2, xscale=:log10, yscale=:log10)
+end
+pb
 
 
-error_all, error_two_piece, F_value, p_value = compare_breakpoint_models(massvec[1:35], rhomin[1:35,zetaindex], index_break)
+
+#What are the breakpoints (slope and mass) as a function of survival threshold?
+
+surv_thresholdvec = collect(0:0.1:1);
+l_surv_thresholdvec = length(surv_thresholdvec);
+#Extract rhomin
+rhomin_surv = Array{Float64}(undef,l_surv_thresholdvec,l_massvec,l_zetavec);
+
+for i=1:l_surv_thresholdvec
+    surv_threshold = surv_thresholdvec[i];
+    for m=1:l_massvec
+        mass_survival = survival[m,:,:];
+        for j=1:l_zetavec
+            rhomin_surv[i,m,j] = findrhomin(rhoexpvec,mass_survival[:,j],surv_threshold);
+        end
+    end
+end
+
+break_mass_surv = Array{Float64}(undef,l_surv_thresholdvec,l_zetavec)
+break_slope_surv = Array{Float64}(undef,l_surv_thresholdvec,l_zetavec)
+for j=1:3
+    for i=1:l_surv_thresholdvec
+        zetaindex=j;
+        break_mass, index_break = breakpoint_find(massvec[1:50],rhomin_surv[i,1:50,zetaindex])
+        a1, b1, a2, b2, mass_range1, rhomin_fit1, mass_range2, rhomin_fit2 = breakpoint_fit(massvec[1:50],rhomin_surv[i,1:50,:],break_mass,index_break,zetaindex)
+        error_all, error_two_piece, F_value, p_value = breakpoint_compare_models(massvec[1:50], rhomin_surv[i,1:50,zetaindex], index_break)
+
+        break_mass_surv[i,j] = break_mass;
+        break_slope_surv[i,j] = b1;
+    end
+end
+
+#Examination of mean mass values pre and post Eocene-Oligocene Transition
+
+filename = smartpath("data/Alroy_bodysize1998.csv");
+massdata = CSV.read(filename, DataFrame) 
+# Convert all entries to lowercase
+massdata[!, :"Limb morphology"] .= lowercase.(massdata[!, :"Limb morphology"])
+# Subset the DataFrame
+subsetdata = filter(row -> row[:"Limb morphology"] in ["graviportal", "protounguligrade","unguligrade","digitigrade","protodigitigrade"], massdata)
+
+fa_mya = subsetdata[!,:"First appearance (mya)"];
+la_mya = subsetdata[!,:"Last appearance (mya)"];
+sp_mass = (exp.(subsetdata[!,:"Mass (ln g)"]))/1000;
+
+pre_eot_pos = findall(x -> x < 56  && x > 34 ,la_mya);
+post_eot_pos = findall(x -> x < 34 && x > 10 ,la_mya);
+
+exp(mean(log.(sp_mass[pre_eot_pos])))
+exp(mean(log.(sp_mass[post_eot_pos])))
+
+"graviportal", "protounguligrade", "unguligrade"

@@ -8,6 +8,7 @@ using Base.Threads
 include("trait_and_rate_functions.jl")
 include("dailyforage.jl")
 include("withindaysim_v2.jl")
+include("withindaysim_v3.jl")
 include("acrossdaysim.jl")
 include("calculate_histogram.jl")
 include("find_bin_index.jl")
@@ -17,8 +18,9 @@ include("herbsim_individuals.jl")
 include("findrhomin.jl")
 include("smartpath.jl")
 include("dailyforage_expectedvalues.jl")
-include("find_breakpoint.jl")
-include("compare_breakpoint_models.jl")
+include("breakpoint_find.jl")
+include("breakpoint_compare_models.jl")
+include("breakpoint_fit.jl")
 
 export 
 
@@ -50,6 +52,7 @@ dailyfoodintake,
 
 dailyforage,
 withindaysim,
+withindaysim_split,
 acrossdaysim,
 herbsim_individuals,
 
@@ -60,8 +63,9 @@ decompose_to_integer_components,
 findrhomin,
 smartpath,
 dailyforage_expectedvalues,
-find_breakpoint,
-compare_breakpoint_models
+breakpoint_find,
+breakpoint_compare_models,
+breakpoint_fit
 
 
 
