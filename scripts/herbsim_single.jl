@@ -98,9 +98,10 @@ E_gains, Var_gains, E_costs, Var_costs = dailyforage_expectedvalues(mass, gut_ty
 
 #Comparing stochasticity with within day splits
 # This provides a return distribution
-nosplit = Array{Float64}(undef,50,2);
-split = Array{Float64}(undef,50,2);
-for i=1:50
+reps = 500
+nosplit = Array{Float64}(undef,reps,2);
+split = Array{Float64}(undef,reps,2);
+for i=1:reps
     @time gains, costs, prob = withindaysim(rho,alpha,mu,zeta,edensity,mass,teeth,gut_type,tmax_bout,configurations);
 
     nosplit[i,:] = [mean(gains),mean(costs)]

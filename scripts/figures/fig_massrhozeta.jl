@@ -14,10 +14,11 @@ using UnicodePlots
 using StatsPlots
 using ColorSchemes
 using JLD2
+using CSV
 using ProgressMeter
 
 # Load variables from saved file
-filename = smartpath("data/simdata/massrhozeta_maxgut2.jld2")
+filename = smartpath("data/simdata/massrhozeta_maxgut3.jld2")
 @load filename vars_to_save
 for (name, value) in vars_to_save
     @eval Main $(Symbol(name)) = $value
@@ -116,7 +117,13 @@ a1, b1, a2, b2, mass_range1, rhomin_fit1, mass_range2, rhomin_fit2 = breakpoint_
 error_all, error_two_piece, F_value, p_value = breakpoint_compare_models(massvec[1:50], rhomin[1:50,zetaindex], index_break)
 
 # Original data
-pb = Plots.scatter(massvec, rhomin[:,zetaindex], label="Data", xlabel="Mass", ylabel="Rhomin", xscale=:log10, yscale=:log10)
+pb = Plots.scatter(massvec, rhomin[:,zetaindex], 
+    label="Data", 
+    xlabel="Mass", 
+    ylabel="Rhomin", 
+    xscale=:log10, 
+    yscale=:log10,
+    framestyle=:box)  
 # Fitted function
 plot!(pb,mass_range1, rhomin_fit1, label="Fit1", lw=2, xscale=:log10, yscale=:log10)
 plot!(pb,mass_range2, rhomin_fit2, label="Fit1", lw=2, xscale=:log10, yscale=:log10)
@@ -137,6 +144,7 @@ for i=3
 end
 pb
 
+Plots.savefig(pb, string(homedir(),"/Dropbox/PostDoc/2024_herbforaging/figures/fig_massrhozeta_breakpoints_maxgut3.pdf"))
 
 
 #What are the breakpoints (slope and mass) as a function of survival threshold?
@@ -176,17 +184,18 @@ filename = smartpath("data/Alroy_bodysize1998.csv");
 massdata = CSV.read(filename, DataFrame) 
 # Convert all entries to lowercase
 massdata[!, :"Limb morphology"] .= lowercase.(massdata[!, :"Limb morphology"])
+UnicodePlots.scatterplot(-massdata[!,:"Last appearance (mya)"],log.(massdata[!,:"Mass (ln g)"]))
 # Subset the DataFrame
-subsetdata = filter(row -> row[:"Limb morphology"] in ["graviportal", "protounguligrade","unguligrade","digitigrade","protodigitigrade"], massdata)
+subsetdata = filter(row -> row[:"Limb morphology"] in ["graviportal", "protounguligrade","unguligrade"], massdata)
 
 fa_mya = subsetdata[!,:"First appearance (mya)"];
 la_mya = subsetdata[!,:"Last appearance (mya)"];
 sp_mass = (exp.(subsetdata[!,:"Mass (ln g)"]))/1000;
 
-pre_eot_pos = findall(x -> x < 56  && x > 34 ,la_mya);
-post_eot_pos = findall(x -> x < 34 && x > 10 ,la_mya);
+pre_eot_pos = findall(x -> x < 56  && x > 34 ,fa_mya);
+post_eot_pos = findall(x -> x < 34 && x > 10 ,fa_mya);
 
 exp(mean(log.(sp_mass[pre_eot_pos])))
 exp(mean(log.(sp_mass[post_eot_pos])))
 
-"graviportal", "protounguligrade", "unguligrade"
+"graviportal", "protounguligrade", "unguligrade","digitigrade","protodigitigrade"
