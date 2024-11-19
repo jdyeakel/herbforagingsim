@@ -11,7 +11,7 @@ function herbsim_individuals(mass,teeth,gut_type,rhoexp,mu,alpha,edensity,zeta,c
     # res_traits = (mu, alpha, edensity);
     
     # Use a single withinday distribution
-    gains, costs, probs = withindaysim(rho,alpha,mu,zeta,edensity,mass,teeth,gut_type,tmax_bout,configurations);
+    gains, costs, probs = withindaysim_split(rho,alpha,mu,zeta,edensity,mass,teeth,gut_type,tmax_bout,configurations);
 
     cyears = expectedlifetime(mass); #Mean expected lifespan (yrs); Calder 1984; 10;
     daysincyears = Int64(floor(365*cyears));
