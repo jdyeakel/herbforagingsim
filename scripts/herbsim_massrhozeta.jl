@@ -71,7 +71,7 @@ fatCV = Array{Float64}(undef,l_massvec,l_rhoexpvec,l_zetavec);
     end
 end
 
-filename = smartpath("data/simdata/massrhozeta_maxgut4_split.jld2")
+filename = smartpath("data/simdata/massrhozeta_maxgut5_split.jld2")
 # @save filename survival fatmean fatCV
 vars_to_save = Dict(n => getfield(Main, n) for n in setdiff(names(Main), [:Base, :Core, :Main]))
 @save filename vars_to_save
