@@ -1,32 +1,34 @@
-function dailyforage(gammadist,tchew, beta, maxgut, velocity, bcost_kJps, fcost_kJps, edensity, tmax_bout)
+function dailyforage_experiment(mass,gut_type,teeth,rho,mu,alpha,zeta,edensity,tmax_bout)
 
-    # bcost_kJps, fcost_kJps = metabolic_cost(mass);
+    travel_perbite = Array{Float64}(undef,0)
 
-    # velocity = find_velocity(mass); # m/s
+    bcost_kJps, fcost_kJps = metabolic_cost(mass);
 
-    # # CALCULATE tchew
-    # # NOTE: BITE SIZE SEEMS SMALL
-    # # bite_rate = bite_rate_allo(mass); # mass in kg, bite/s
-    # beta = bite_size_allo(mass); # mass in kg, bite size in g/bite
+    velocity = find_velocity(mass); # m/s
 
-    # chewrate = chew_allo(mass, teeth); #g/s
-    # tchewgram = 1/chewrate; #s/g
-    # tchew = tchewgram * beta; #s/g * g/bite = s/bite
+    # CALCULATE tchew
+    # NOTE: BITE SIZE SEEMS SMALL
+    # bite_rate = bite_rate_allo(mass); # mass in kg, bite/s
+    beta = bite_size_allo(mass); # mass in kg, bite size in g/bite
 
-    # maxgut = gut_capacity_g(mass, gut_type) #grams
+    chewrate = chew_allo(mass, teeth); #g/s
+    tchewgram = 1/chewrate; #s/g
+    tchew = tchewgram * beta; #s/g * g/bite = s/bite
 
-    # #Consumer population density: individuals/m^2
-    # n = indperarea(mass); #individuals/m^2
+    maxgut = gut_capacity_g(mass, gut_type) #grams
 
-    # # rho * mu * (1/beta) = bite encounters/m^2 ~ bite encounter rate
-    # m = rho*mu*(1/beta);
+    #Consumer population density: individuals/m^2
+    n = indperarea(mass); #individuals/m^2
 
-    # #Adjusted for competitive landscape
-    # mprime = m/n;
-    # alphaprime = alpha*n^(zeta-2);
+    # rho * mu * (1/beta) = bite encounters/m^2 ~ bite encounter rate
+    m = rho*mu*(1/beta);
 
-    # #Define Gamma Distribution for resource availability
-    # gammadist = Gamma(alphaprime,mprime/alphaprime); #mean = alpha * m/alpha
+    #Adjusted for competitive landscape
+    mprime = m/n;
+    alphaprime = alpha*n^(zeta-2);
+
+    #Define Gamma Distribution for resource availability
+    gammadist = Gamma(alphaprime,mprime/alphaprime); #mean = alpha * m/alpha
 
     #Initialize
     t_travel = 0.0;
@@ -50,6 +52,8 @@ function dailyforage(gammadist,tchew, beta, maxgut, velocity, bcost_kJps, fcost_
         
         t += ttravel; # time
         t_travel += ttravel; # time
+
+        push!(travel_perbite,ttravel);
         
         # If the forager successfully reaches the resource
         # Each resource is equal to 1 mouthful
@@ -81,6 +85,6 @@ function dailyforage(gammadist,tchew, beta, maxgut, velocity, bcost_kJps, fcost_
     #kJ costs
     costs = fcost_kJps*t_travel + bcost_kJps*(t_chew + t_rest);
 
-    return gains, costs, bites
+    return gains, costs, bites, t_travel, t_chew, t_rest, travel_perbite, t
     
 end

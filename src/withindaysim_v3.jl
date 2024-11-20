@@ -26,6 +26,34 @@ function withindaysim_split(
     #     push!(costs,costs_daily);
     # end
 
+    bcost_kJps, fcost_kJps = metabolic_cost(mass);
+
+    velocity = find_velocity(mass); # m/s
+
+    # CALCULATE tchew
+    # NOTE: BITE SIZE SEEMS SMALL
+    # bite_rate = bite_rate_allo(mass); # mass in kg, bite/s
+    beta = bite_size_allo(mass); # mass in kg, bite size in g/bite
+
+    chewrate = chew_allo(mass, teeth); #g/s
+    tchewgram = 1/chewrate; #s/g
+    tchew = tchewgram * beta; #s/g * g/bite = s/bite
+
+    maxgut = gut_capacity_g(mass, gut_type) #grams
+
+    #Consumer population density: individuals/m^2
+    n = indperarea(mass); #individuals/m^2
+
+    # rho * mu * (1/beta) = bite encounters/m^2 ~ bite encounter rate
+    m = rho*mu*(1/beta);
+
+    #Adjusted for competitive landscape
+    mprime = m/n;
+    alphaprime = alpha*n^(zeta-2);
+
+    #Define Gamma Distribution for resource availability
+    gammadist = Gamma(alphaprime,mprime/alphaprime); #mean = alpha * m/alpha
+
     # Number of splits for within-day simulations
     n_splits = 5;
     split_configurations = Int64(floor(configurations / n_splits))
@@ -47,8 +75,8 @@ function withindaysim_split(
     
         # Simulate daily forage for this split
         @threads for i in 1:split_configurations
-            local_gains[i], local_costs[i] = dailyforage(
-                mass, gut_type, teeth, rho, mu, alpha, zeta, edensity, tmax_bout
+            local_gains[i], local_costs[i], _ = dailyforage(
+                gammadist,tchew, beta, maxgut, velocity, bcost_kJps, fcost_kJps, edensity, tmax_bout
             )
         end
     

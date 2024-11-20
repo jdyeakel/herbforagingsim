@@ -21,6 +21,8 @@ include("dailyforage_expectedvalues.jl")
 include("breakpoint_find.jl")
 include("breakpoint_compare_models.jl")
 include("breakpoint_fit.jl")
+include("dailyforage_experiment.jl")
+include("dailyforage_trim.jl")
 
 export 
 
@@ -65,7 +67,9 @@ smartpath,
 dailyforage_expectedvalues,
 breakpoint_find,
 breakpoint_compare_models,
-breakpoint_fit
+breakpoint_fit,
+dailyforage_experiment,
+dailyforage_trim
 
 
 

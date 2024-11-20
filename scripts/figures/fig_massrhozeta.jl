@@ -24,17 +24,18 @@ for (name, value) in vars_to_save
     @eval Main $(Symbol(name)) = $value
 end
 
-
-
-
 #Extract rhomin
 rhomin = Array{Float64}(undef,l_massvec,l_zetavec);
 for m=1:l_massvec
     mass_survival = survival[m,:,:];
     for j=1:l_zetavec
-        rhomin[m,j] = findrhomin(rhoexpvec,mass_survival[:,j],0.5);
+        rhomin[m,j] = findrhomin(rhoexpvec,mass_survival[:,j],0.8);
     end
 end
+
+
+
+
 
 
 # PLOT fat reserves for individuals across time
@@ -144,12 +145,12 @@ for i=3
 end
 pb
 
-Plots.savefig(pb, string(homedir(),"/Dropbox/PostDoc/2024_herbforaging/figures/fig_massrhozeta_breakpoints_maxgut3.pdf"))
+Plots.savefig(pb, string(homedir(),"/Dropbox/PostDoc/2024_herbforaging/figures/fig_massrhozeta_breakpoints_maxgut4_split.pdf"))
 
 
 #What are the breakpoints (slope and mass) as a function of survival threshold?
 
-surv_thresholdvec = collect(0:0.1:1);
+surv_thresholdvec = collect(0.1:0.1:0.9);
 l_surv_thresholdvec = length(surv_thresholdvec);
 #Extract rhomin
 rhomin_surv = Array{Float64}(undef,l_surv_thresholdvec,l_massvec,l_zetavec);
@@ -164,8 +165,8 @@ for i=1:l_surv_thresholdvec
     end
 end
 
-break_mass_surv = Array{Float64}(undef,l_surv_thresholdvec,l_zetavec)
-break_slope_surv = Array{Float64}(undef,l_surv_thresholdvec,l_zetavec)
+break_mass_surv = Array{Float64}(undef,l_surv_thresholdvec,l_zetavec);
+break_slope_surv = Array{Float64}(undef,l_surv_thresholdvec,l_zetavec);
 for j=1:3
     for i=1:l_surv_thresholdvec
         zetaindex=j;
@@ -177,6 +178,12 @@ for j=1:3
         break_slope_surv[i,j] = b1;
     end
 end
+
+mean(break_mass_surv,dims=1)
+std(break_mass_surv,dims=1)
+
+
+
 
 #Examination of mean mass values pre and post Eocene-Oligocene Transition
 

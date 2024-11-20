@@ -58,7 +58,7 @@ function withindaysim(
     gains = Vector{Float64}(undef, configurations)
     costs = Vector{Float64}(undef, configurations)
     @threads for i in 1:configurations
-        gains_daily, costs_daily, _ = dailyforage(gammadist,tchew, beta, maxgut, velocity, bcost_kJps, fcost_kJps, edensity, tmax_bout)
+        gains_daily, costs_daily, _ = dailyforage_trim(gammadist,tchew, beta, maxgut, velocity, bcost_kJps, fcost_kJps, edensity, tmax_bout)
         
         # Store results directly in preallocated arrays
         gains[i] = gains_daily
