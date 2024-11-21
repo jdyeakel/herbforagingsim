@@ -33,8 +33,10 @@ for m=1:l_massvec
     end
 end
 
-
-
+filename=smartpath("data/simdata/rhovalues_maxgut.csv")
+maxgutdata = CSV.read(filename, DataFrame)
+mass_maxgut = Array(maxgutdata[!,:mass])
+rhomin_maxgut = Array(maxgutdata[!,[:zeta1,:zeta175,:zeta2]])
 
 
 
@@ -124,10 +126,12 @@ pb = Plots.scatter(massvec, rhomin[:,zetaindex],
     ylabel="Rhomin", 
     xscale=:log10, 
     yscale=:log10,
-    framestyle=:box)  
+    framestyle=:box,
+    legend=false)  
 # Fitted function
 plot!(pb,mass_range1, rhomin_fit1, label="Fit1", lw=2, xscale=:log10, yscale=:log10)
 plot!(pb,mass_range2, rhomin_fit2, label="Fit1", lw=2, xscale=:log10, yscale=:log10)
+plot!(pb,mass_maxgut,rhomin_maxgut[:,1],color=:black)
 
 for i=3
     zetaindex = i
@@ -142,6 +146,7 @@ for i=3
     # Fitted function
     plot!(pb,mass_range1, rhomin_fit1, label="Fit1", lw=2, xscale=:log10, yscale=:log10)
     plot!(pb,mass_range2, rhomin_fit2, label="Fit1", lw=2, xscale=:log10, yscale=:log10)
+    plot!(pb,mass_maxgut,rhomin_maxgut[:,i],color=:black)
 end
 pb
 
