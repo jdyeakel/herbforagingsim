@@ -57,7 +57,7 @@ function acrossdaysim(
     eta_d = 0.6;
 
     
-    eta_m = edensity_fat/(edensity_fat + Eprime); #kJ cost of synthesizing 1 kJ of fat storage
+    eta_m = edensity_fat/(edensity_fat + Eprime); #(%)kJ cost of synthesizing 1 kJ of fat storage
 
 
     #Active time
