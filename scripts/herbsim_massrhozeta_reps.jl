@@ -13,7 +13,7 @@ using StatsPlots
 using ProgressMeter
 
 #Saving as individual files, so we could do more
-reps = collect(3:1:10);
+reps = collect(5:1:10);
 
 #HERBIVORE
 #Define mass of herbivore
@@ -44,11 +44,14 @@ l_rhoexpvec = length(rhoexpvec);
 zetavec = [1.0,2.0]; #collect(1:0.5:2);
 l_zetavec = length(zetavec);
 
-survival = Array{Float64}(undef,l_massvec,l_rhoexpvec,l_zetavec);
-fatmean = Array{Float64}(undef,l_massvec,l_rhoexpvec,l_zetavec);
-fatCV = Array{Float64}(undef,l_massvec,l_rhoexpvec,l_zetavec);
+
 
 @showprogress 1 "Computing..." for r=reps
+
+    survival = Array{Float64}(undef,l_massvec,l_rhoexpvec,l_zetavec);
+    fatmean = Array{Float64}(undef,l_massvec,l_rhoexpvec,l_zetavec);
+    fatCV = Array{Float64}(undef,l_massvec,l_rhoexpvec,l_zetavec);
+
     for m=1:l_massvec
         for i=1:l_rhoexpvec
             for j=1:l_zetavec
