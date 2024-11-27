@@ -13,7 +13,7 @@ using StatsPlots
 using ProgressMeter
 
 #Saving as individual files, so we could do more
-reps = collect(5:1:10);
+reps = collect(7:1:10);
 
 #HERBIVORE
 #Define mass of herbivore
@@ -76,10 +76,14 @@ l_zetavec = length(zetavec);
             end
         end
     end
+
+
     filename = smartpath("data/simdata/massrhozetareps/massrhozeta_rep.jld2",[r])
     # @save filename survival fatmean fatCV
     vars_to_save = Dict(n => getfield(Main, n) for n in setdiff(names(Main), [:Base, :Core, :Main]))
     @save filename vars_to_save
+
+    
 end
 
 
