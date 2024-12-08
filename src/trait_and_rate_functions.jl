@@ -134,6 +134,10 @@ function chew_rate_allo(mass, teeth)
    elseif teeth == "lophs and flat"
        chewing_cycle_duration = (262.4* (mass)^0.207) / 1000; # 2.419 [ms -> s]0
 
+   elseif teeth == "all"
+
+        chewing_cycle_duration = (266.07* (mass)^0.196) / 1000; # 2.419 [ms -> s]0
+
    end
 
    return 1 / (chewing_cycle_duration )  #[s/chew -> chews/s]

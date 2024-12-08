@@ -13,7 +13,7 @@ using StatsPlots
 using ProgressMeter
 
 #Saving as individual files, so we could do more
-reps = collect(3:1:4);
+reps = collect(1:10);
 
 #HERBIVORE
 #Define mass of herbivore
@@ -21,8 +21,8 @@ massexpvec = collect(1.5:0.05:4.4);
 massvec = 10 .^ massexpvec;
 l_massvec = length(massvec);
 #Define tooth and gut type of herbivore
-teeth = "bunodont"; # bunodont, acute/obtuse lophs, lophs and non-flat, lophs and flat
-gut_type = "caecum"; # caecum, colon, non-rumen foregut, rumen foregut
+teeth = "all"; # all, bunodont, acute/obtuse lophs, lophs and non-flat, lophs and flat
+gut_type = "rumen foregut"; # caecum, colon, non-rumen foregut, rumen foregut
 
 #RESOURCE
 #Set richness
@@ -52,7 +52,7 @@ l_zetavec = length(zetavec);
     fatmean = Array{Float64}(undef,l_massvec,l_rhoexpvec,l_zetavec);
     fatCV = Array{Float64}(undef,l_massvec,l_rhoexpvec,l_zetavec);
 
-    for m=1:l_massvec
+    @threads for m=1:l_massvec
         for i=1:l_rhoexpvec
             for j=1:l_zetavec
 
@@ -78,12 +78,12 @@ l_zetavec = length(zetavec);
     end
 
 
-    filename = smartpath("data/simdata/massrhozetareps/massrhozeta_rep.jld2",[r])
+    filename = smartpath("data/simdata/massrhozetareps_foregut/massrhozeta_rep.jld2",[r])
     # @save filename survival fatmean fatCV
     vars_to_save = Dict(n => getfield(Main, n) for n in setdiff(names(Main), [:Base, :Core, :Main]))
     @save filename vars_to_save
 
-    GC.gc()  # Force garbage collection after each rep
+    # GC.gc()  # Force garbage collection after each rep
 
     
 end
