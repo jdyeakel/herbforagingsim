@@ -13,7 +13,7 @@ using StatsPlots
 using ProgressMeter
 
 #Saving as individual files, so we could do more
-reps = collect(1:10);
+reps = collect(2:10);
 
 #HERBIVORE
 #Define mass of herbivore
@@ -45,36 +45,36 @@ zetavec = [1.0,2.0]; #collect(1:0.5:2);
 l_zetavec = length(zetavec);
 
 @showprogress 1 "Computing..." for r=reps
+# Initialize arrays
+survival = Array{Float64}(undef, l_massvec, l_rhoexpvec, l_zetavec)
+fatmean = Array{Float64}(undef, l_massvec, l_rhoexpvec, l_zetavec)
+fatCV = Array{Float64}(undef, l_massvec, l_rhoexpvec, l_zetavec)
 
-    survival = Array{Float64}(undef, l_massvec, l_rhoexpvec, l_zetavec)
-    fatmean = Array{Float64}(undef, l_massvec, l_rhoexpvec, l_zetavec)
-    fatCV = Array{Float64}(undef, l_massvec, l_rhoexpvec, l_zetavec)
+    # Loop over m
+    for m in 1:l_massvec
 
-    # Compute total iterations
-    total_iterations = l_massvec * l_rhoexpvec * l_zetavec
+        # Parallel loop over combined i and j indices
+        @threads for index in 1:(l_rhoexpvec * l_zetavec)
+            # Compute i and j from the flattened index
+            i = div(index - 1, l_zetavec) + 1
+            j = mod(index - 1, l_zetavec) + 1
 
-    # Parallel loop over combined indices
-    @threads for index in 1:total_iterations
-        # Compute m, i, j from the flattened index
-        m = div(index - 1, l_rhoexpvec * l_zetavec) + 1
-        i = div(mod(index - 1, l_rhoexpvec * l_zetavec), l_zetavec) + 1
-        j = mod(index - 1, l_zetavec) + 1
+            mass = massvec[m]
+            rhoexp = rhoexpvec[i]
+            zeta = zetavec[j]
 
-        mass = massvec[m]
-        rhoexp = rhoexpvec[i]
-        zeta = zetavec[j]
+            # Run within-day and across-day simulations
+            gains_inds, 
+            costs_inds, 
+            gut_inds, 
+            fat_inds, 
+            fatsynth_inds = herbsim_individuals(mass, teeth, gut_type, rhoexp, mu, alpha, edensity, zeta, configurations, p_bad, runs)
 
-        # Run within-day and across-day sims
-        gains_inds, 
-        costs_inds, 
-        gut_inds, 
-        fat_inds, 
-        fatsynth_inds = herbsim_individuals(mass, teeth, gut_type, rhoexp, mu, alpha, edensity, zeta, configurations, p_bad, runs)
-
-        # Calculate metrics
-        survival[m, i, j] = sum(gut_inds[:, end] .> 0) / runs
-        fatmean[m, i, j] = mean(mean(gut_inds[:, end-100:end], dims=2))
-        fatCV[m, i, j] = mean(std(gut_inds[:, end-100:end], dims=2) ./ mean(gut_inds[:, end-100:end], dims=2))
+            # Calculate metrics
+            survival[m, i, j] = sum(gut_inds[:, end] .> 0) / runs
+            fatmean[m, i, j] = mean(mean(gut_inds[:, end-100:end], dims=2))
+            fatCV[m, i, j] = mean(std(gut_inds[:, end-100:end], dims=2) ./ mean(gut_inds[:, end-100:end], dims=2))
+        end
     end
 
     filename = smartpath("data/simdata/massrhozetareps_foregut/massrhozeta_rep.jld2", [r])
@@ -85,20 +85,20 @@ l_zetavec = length(zetavec);
     # GC.gc()  # Force garbage collection after each rep
 end
 
-# #Validate index scheme NOTE: appears to work!
-
-# # Generate all possible combinations of (m, i, j)
+# # Validate index scheme
 # all_combinations = Set{Tuple{Int, Int, Int}}([(m, i, j) for m in 1:l_massvec, i in 1:l_rhoexpvec, j in 1:l_zetavec])
 
-# # Flattened index to (m, i, j) mapping and save combinations
+# # Flattened loop for i and j, with outer loop for m
 # visited_combinations = Set{Tuple{Int, Int, Int}}()
-# for index in 1:total_iterations
-#     m = div(index - 1, l_rhoexpvec * l_zetavec) + 1
-#     i = div(mod(index - 1, l_rhoexpvec * l_zetavec), l_zetavec) + 1
-#     j = mod(index - 1, l_zetavec) + 1
+# for m in 1:l_massvec
+#     for index in 1:(l_rhoexpvec * l_zetavec)
+#         # Compute i and j from the flattened index
+#         i = div(index - 1, l_zetavec) + 1
+#         j = mod(index - 1, l_zetavec) + 1
 
-#     # Save the combination
-#     push!(visited_combinations, (m, i, j))
+#         # Save the combination
+#         push!(visited_combinations, (m, i, j))
+#     end
 # end
 
 # # Check if all combinations are visited
