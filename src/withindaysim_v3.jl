@@ -74,8 +74,8 @@ function withindaysim_split(
         local_costs = Vector{Float64}(undef, split_configurations)
     
         # Simulate daily forage for this split
-        @threads #NOTE: Experiment removing threading here: 12/8/2024
-        for i in 1:split_configurations
+        #NOTE: Experiment removing threading here: 12/8/2024
+        @threads for i in 1:split_configurations
             local_gains[i], local_costs[i], _ = dailyforage(
                 gammadist,tchew, beta, maxgut, velocity, bcost_kJps, fcost_kJps, edensity, tmax_bout
             )
