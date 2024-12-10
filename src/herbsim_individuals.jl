@@ -23,7 +23,7 @@ function herbsim_individuals(mass,teeth,gut_type,rhoexp,mu,alpha,edensity,zeta,c
     fatsynth_inds = Array{Float64}(undef,runs,daysincyears);
 
     # Many across-day simulations
-    # @threads #NOTE: Experiment removing threading here 12/8/2024
+    @threads #NOTE: Experiment removing threading here 12/8/2024
     for i=1:runs
     # for i=1:runs
         gdaily, cdaily, cgut, cfat, cfat_synthesizing = acrossdaysim(gains,costs,probs,edensity,mass,gut_type,cyears,p_bad);

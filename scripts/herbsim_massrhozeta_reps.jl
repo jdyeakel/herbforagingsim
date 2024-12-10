@@ -13,7 +13,7 @@ using StatsPlots
 using ProgressMeter
 
 #Saving as individual files, so we could do more
-reps = collect(2:10);
+reps = collect(3:10);
 
 #HERBIVORE
 #Define mass of herbivore
@@ -54,7 +54,7 @@ fatCV = Array{Float64}(undef, l_massvec, l_rhoexpvec, l_zetavec)
     for m in 1:l_massvec
 
         # Parallel loop over combined i and j indices
-        @threads for index in 1:(l_rhoexpvec * l_zetavec)
+        for index in 1:(l_rhoexpvec * l_zetavec)
             # Compute i and j from the flattened index
             i = div(index - 1, l_zetavec) + 1
             j = mod(index - 1, l_zetavec) + 1
