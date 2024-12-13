@@ -13,7 +13,7 @@ using StatsPlots
 using ProgressMeter
 
 #Saving as individual files, so we could do more
-reps = collect(3:10);
+reps = collect(5:10);
 
 #HERBIVORE
 #Define mass of herbivore
