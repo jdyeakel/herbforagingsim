@@ -13,7 +13,7 @@ using StatsPlots
 using ProgressMeter
 
 #Saving as individual files, so we could do more
-reps = collect(9:10);
+reps = collect(1:3);
 
 #HERBIVORE
 #Define mass of herbivore
@@ -80,9 +80,13 @@ fatCV = Array{Float64}(undef, l_massvec, l_rhoexpvec, l_zetavec)
     filename = smartpath("data/simdata/massrhozetareps_foregut/massrhozeta_rep.jld2", [r])
     # @save filename survival fatmean fatCV
     vars_to_save = Dict(n => getfield(Main, n) for n in setdiff(names(Main), [:Base, :Core, :Main]))
+    #append local variables
+    vars_to_save[:survival] = survival
+    vars_to_save[:fatmean] = fatmean
+    vars_to_save[:fatCV] = fatCV
     @save filename vars_to_save
 
-    # GC.gc()  # Force garbage collection after each rep
+    GC.gc()  # Force garbage collection after each rep
 end
 
 # # Validate index scheme

@@ -18,11 +18,17 @@ using CSV
 using ProgressMeter
 
 # Load variables from saved file
+# NOTE: Both of these seem to work the same
 filename = smartpath("data/simdata/massrhozeta_maxgut3.jld2")
+filename = smartpath("data/simdata/massrhozeta_maxgut4_split.jld2")
+# filename = smartpath("data/simdata/massrhozetareps/massrhozeta_rep_9.jld2")
+
 @load filename vars_to_save
 for (name, value) in vars_to_save
     @eval Main $(Symbol(name)) = $value
 end
+println("Loaded variables: ", collect(keys(vars_to_save)))
+
 
 #Extract rhomin
 rhomin = Array{Float64}(undef,l_massvec,l_zetavec);
