@@ -412,8 +412,25 @@ function indperarea(mass)
     #Convert to grams
     massg = mass*1000;
     popdensity = (0.0116)*massg^-0.776; #inds/area (from Damuth)
-    return popdensity
+
+    foragebout_hrs, _ = foragingtime(mass); #hrs
+    foragebout_s = foragebout_hrs *60*60;
+    foragevelocity = find_velocity(mass); #m/s
+    areaforaged = pi*((foragevelocity * foragebout_s)/2)^2 #m/s * s * m
+
+    width = 2
+    corridorareaforaged = foragevelocity * foragebout_s * width #corridor 1 m
+
+    #Or use homerange scaling
+    #Owen-Smith 1988 pg 96
+    HR = 13500*mass^1.25 #m^2
+
+    popinarea = 1. + popdensity*(corridorareaforaged)
+
+    return popdensity, popinarea
 end
+
+
 
 
 function maxfatstorage(mass,edensity_fat)
@@ -465,12 +482,14 @@ function expectedlifetime(mass)
 end
 
 function foragingtime(mass)
+    #Owen Smith 1988 book (data grabbed using PlotDigitizer in /data/)
     #mass in kg
     #foraging time in % of 24 hours
 
     forageperc = 21.0885*mass^0.124
     forageperc_upper95 = 27*mass^0.17
 
+    #translate to hours
     foragehrs = (forageperc/100)*24
     foragehrs_upper95 = (forageperc_upper95/100)*24
 
@@ -500,6 +519,27 @@ function dailyfoodintake(mass)
     return intake_kJday
 end
 
+
+function reactionwidth(mass)
+    #mass in kg
+    #distance in meters
+    #see 'fit' with Pawar data in analysis
+    #Note it is not a fit, but anchoring the intercept 
+
+    width = 2 * 5 * mass^(1/3) #meters
+
+    return width
+
+end
+
+
+# NOTE: EXPERIMENTAL - the cosmological constant
+function reactionheight(mass)
+    #mass in KG
+    #distance in meters ~ shoulder height
+    #From Larramendi 2016
+    ra = 0.1501*mass^0.357
+end
 
 
 # # Bite chew time allometry

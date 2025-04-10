@@ -137,7 +137,7 @@ pb = Plots.scatter(massvec, rhomin[:,zetaindex],
 # Fitted function
 plot!(pb,mass_range1, rhomin_fit1, label="Fit1", lw=2, xscale=:log10, yscale=:log10)
 plot!(pb,mass_range2, rhomin_fit2, label="Fit1", lw=2, xscale=:log10, yscale=:log10)
-plot!(pb,mass_maxgut,rhomin_maxgut[:,1],color=:black)
+plot!(pb,mass_maxgut,rhomin_maxgut[:,1],color=:black,lw=2)
 
 for i=3
     zetaindex = i
@@ -152,7 +152,7 @@ for i=3
     # Fitted function
     plot!(pb,mass_range1, rhomin_fit1, label="Fit1", lw=2, xscale=:log10, yscale=:log10)
     plot!(pb,mass_range2, rhomin_fit2, label="Fit1", lw=2, xscale=:log10, yscale=:log10)
-    plot!(pb,mass_maxgut,rhomin_maxgut[:,i],color=:black)
+    plot!(pb,mass_maxgut,rhomin_maxgut[:,i],color=:black,lw=2)
 end
 pb
 

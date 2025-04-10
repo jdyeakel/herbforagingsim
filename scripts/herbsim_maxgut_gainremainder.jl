@@ -14,236 +14,8 @@ using ColorSchemes
 using JLD2
 using ProgressMeter
 using GLM
+using LaTeXStrings
 
-
-#HERBIVORE
-#Define mass of herbivore
-massexpvec = collect(1.5:0.05:4.4);
-massvec = 10 .^ massexpvec;
-l_massvec = length(massvec);
-#Define tooth and gut type of herbivore
-teeth = "all"; # all, bunodont, acute/obtuse lophs, lophs and non-flat, lophs and flat
-gut_type = "rumen foregut"; # caecum, colon, non-rumen foregut, rumen foregut
-
-#RESOURCE
-#Set richness
-# rho = 1*10^-9; #This is very small, because we have set mu = 1
-# rhoexp = -6.19;
-# rhoexp = -7.07;
-
-#Define resource traits
-mu = 1;
-alpha = 3
-edensity = 18.2;
-# zeta = 1.5;
-p_bad = 0.05;
-configurations = 20000; #works fine - 100000 for more perfect distributions
-runs = 200;
-
-rhoexpvec = collect(-8.0:0.01:-5.7);
-l_rhoexpvec = length(rhoexpvec);
-zetavec = [1.0,1.75,2.0]; #collect(1:0.5:2);
-l_zetavec = length(zetavec);
-
-reps = 500;
-
-gains = Array{Float64}(undef,reps,l_massvec,l_rhoexpvec,l_zetavec);
-gaindiff = Array{Float64}(undef,reps,l_massvec,l_rhoexpvec,l_zetavec);
-gainremainder = Array{Float64}(undef,reps,l_massvec,l_rhoexpvec,l_zetavec);
-costs = Array{Float64}(undef,reps,l_massvec,l_rhoexpvec,l_zetavec);
-encounters = Array{Float64}(undef,reps,l_massvec,l_rhoexpvec,l_zetavec);
-cons_maxgut = Array{Float64}(undef,l_massvec);
-
-@showprogress 1 "Computing..." for r=1:reps
-    @threads for m=1:l_massvec
-        for i=1:l_rhoexpvec
-            for j=1:l_zetavec
-
-                mass = massvec[m];
-                rhoexp = rhoexpvec[i];
-                zeta = zetavec[j];
-
-                rho = 10^rhoexp;
-
-
-                beta = bite_size_allo(mass); # mass in kg, bite size in g/bite
-                chewrate = chew_allo(mass, teeth); #g/s
-                t_chewgram = 1/chewrate; #s/g
-                tchew = t_chewgram * beta; #s/g * g/bite = s/bite
-                maxgut = gut_capacity_g(mass, gut_type) #grams
-                bcost_kJps, fcost_kJps = metabolic_cost(mass);
-                velocity = find_velocity(mass); # m/s
-                tmax_bout, _ = foragingtime(mass) .* (60*60) #hours * 60 min/hour * 60 sec/min = secs
-                #Consumer population density: individuals/m^2
-                n = indperarea(mass); #individuals/m^2
-
-
-                # rho * mu * (1/beta) = bite encounters/m^2 ~ bite encounter rate
-                m_res = rho*mu*(1/beta);
-
-                #Adjusted for competitive landscape
-                mprime = m_res/n;
-                alphaprime = alpha*n^(zeta-2);
-
-                configurations = 200000;
-                gammadist = Gamma(alphaprime, mprime / alphaprime);
-
-                gains_daily, costs_daily, encounters_daily = dailyforage(gammadist,tchew, beta, maxgut, velocity, bcost_kJps, fcost_kJps, edensity, tmax_bout)
-
-
-                gains[r,m,i,j] = gains_daily
-                costs[r,m,i,j] = costs_daily
-                encounters[r,m,i,j] = encounters_daily
-                cons_maxgut[m] = maxgut*edensity
-
-                gaindiff[r,m,i,j] = gains[r,m,i,j] - cons_maxgut[m]
-
-                #Calculate remainder gain - cost 
-                gainremainder[r,m,i,j] = gains[r,m,i,j] - costs[r,m,i,j]
-
-                # #Run within-day and across day sims
-                # gains_inds, 
-                # costs_inds, 
-                # gut_inds, 
-                # fat_inds, 
-                # fatsynth_inds = herbsim_individuals(mass,teeth,gut_type,rhoexp,mu,alpha,edensity,zeta,configurations,p_bad,runs)
-                # # relfat_inds = fat_inds/maxfatstorage(mass,37.7)[1];
-
-                # #Calculate metrics
-                # survival[m,i,j] = sum(gut_inds[:,end] .> 0) / runs;
-                # fatmean[m,i,j] = mean(mean(gut_inds[:,end-100:end],dims=2));
-                # fatCV[m,i,j] = mean(std(gut_inds[:,end-100:end],dims=2) ./ mean(gut_inds[:,end-100:end],dims=2));
-
-            end
-        end
-    end
-end
-
-# UnicodePlots.lineplot(rhoexpvec,gaindiff[4,:,1])
-
-
-#Extract rhomin
-rhomin = Array{Float64}(undef,reps,l_massvec,l_zetavec);
-for r=1:reps
-    for m=1:l_massvec
-        mass_gain = gaindiff[r,m,:,:];
-        for j=1:l_zetavec
-            rhomin[r,m,j] = findrhomin(rhoexpvec,mass_gain[:,j],0.0);
-        end
-    end
-end
-
-rhomin_mean = mean(rhomin, dims=1)
-
-rhomin_mean = dropdims(rhomin_mean, dims=1)
-
-# PLOT fat reserves for individuals across time
-line_width=2;
-# Sample colors at evenly spaced intervals for more distinct differences
-num_colors = min(10, l_zetavec)  # Adjust the number of colors for distinctiveness
-color_indices = range(0, stop=1, length=num_colors)
-color_scheme = [ColorSchemes.roma[c] for c in color_indices]  # Choose distinct colors
-
-p = Plots.plot(massvec,rhomin_mean[:,1],
-            xlabel="Mass (kg)", 
-            ylabel="Gutmax rho",
-            xlims=(10^1.5,10^4.5),
-            xscale=:log10,
-            yscale=:log10,
-            legend=false,
-            color = color_scheme[1], 
-            linewidth=line_width,
-            framestyle=:box);
-for i=2:l_zetavec
-    Plots.plot!(p, massvec,rhomin_mean[:,i],
-    xscale=:log10,
-    yscale=:log10,
-    color = color_scheme[i], 
-    linewidth=line_width);
-end; p
-
-
-mean_gainremainder = vec(mean(gainremainder,dims=1)[:,:,40,1])
-positive_gainremainder = findall(x->x>0,mean_gainremainder)
-# plot(log.(massvec[positive_gainremainder])[20:37],log.(mean_gainremainder[positive_gainremainder])[20:37])
-
-
-# Extract the log-transformed values
-x = log.(massvec[positive_gainremainder])[end-17:end]
-y = log.(mean_gainremainder[positive_gainremainder])[end-17:end]
-# Create a DataFrame for the linear model
-df = DataFrame(x = x, y = y)
-# Fit a linear model: y ~ x
-model = lm(@formula(y ~ x), df)
-# Print the model summary to see the slope
-println(coef(model))
-
-intercept, slope = coef(model)
-# Generate the fitted line
-fitted_y = intercept .+ slope .* x;
-plot(log.(massvec[positive_gainremainder]),log.(mean_gainremainder[positive_gainremainder]))
-plot!(x, fitted_y, label="Fitted Line", linewidth=2, color=:red)
-
-
-
-
-# Evaluate the SLOPE across Rho
-remainder_rho_slope = Array{Float64}(undef,l_rhoexpvec)
-minmass = Array{Float64}(undef,l_rhoexpvec)
-for i=1:l_rhoexpvec
-    mean_gainremainder = vec(mean(gainremainder,dims=1)[:,:,i,1])
-    positive_gainremainder = findall(x->x>0,mean_gainremainder)
-    if length(positive_gainremainder) > 0
-        minmass[i] = massvec[positive_gainremainder][1]
-    else
-        minmass[i] = NaN
-    end
-    # plot(log.(massvec[positive_gainremainder])[20:37],log.(mean_gainremainder[positive_gainremainder])[20:37])
-    # Extract the log-transformed values
-    if length(positive_gainremainder)>17
-        x = log.(massvec[positive_gainremainder])[end-17:end]
-        y = log.(mean_gainremainder[positive_gainremainder])[end-17:end]
-        # Create a DataFrame for the linear model
-        df = DataFrame(x = x, y = y)
-        # Fit a linear model: y ~ x
-        model = lm(@formula(y ~ x), df)
-        # Print the model summary to see the slope
-        # println(coef(model))
-        intercept, slope = coef(model)
-
-        remainder_rho_slope[i] = slope
-    else
-        remainder_rho_slope[i] = NaN
-    end
-end
-
-
-
-pslope = plot(rhoexpvec,remainder_rho_slope,
-    xlabel="Richness",
-    ylabel="Energetic remainder exponent",
-    ylims=(0.8,1.3),
-    width=2,
-    frame=:box,
-    legend=false)
-#Define a Too-Low-Rho
-#Where remainder < 0 for all masses 
-minrho = rhoexpvec[findall(x->x<100,minmass)][1]
-minrho_yvalues = collect(0.8:0.1:1.3)
-minrho_xvalues = repeat([minrho], outer=length(minrho_yvalues))
-# Add the line to the plot
-Plots.plot!(pslope, minrho_xvalues, minrho_yvalues,
-    color=:orange,
-    width=2,
-    linestyle = :dash)
-minrho = rhoexpvec[findall(x->x<500,minmass)][1]
-minrho_yvalues = collect(0.8:0.1:1.3)
-minrho_xvalues = repeat([minrho], outer=length(minrho_yvalues))
-# Add the line to the plot
-Plots.plot!(pslope, minrho_xvalues, minrho_yvalues,
-    color=:red,
-    width=2,
-    linestyle = :dash)
 
 
 #SAME THING BUT ACROSS GUT TYPES
@@ -267,7 +39,8 @@ p_bad = 0.05;
 configurations = 20000;
 runs = 200;
 
-rhoexpvec = collect(-8.0:0.01:-5.7);
+# rhoexpvec = collect(-8.0:0.01:-5.7);
+rhoexpvec = collect(-4:0.02:-1);
 l_rhoexpvec = length(rhoexpvec);
 zetavec = [1.0, 1.75, 2.0];
 l_zetavec = length(zetavec);
@@ -290,12 +63,12 @@ for g in 1:n_gut
     println("Processing gut type: $current_gut_type")
     
     # Pre-allocate arrays for this gut type
-    gains = Array{Float64}(undef, reps, l_massvec, l_rhoexpvec, l_zetavec)
-    costs = Array{Float64}(undef, reps, l_massvec, l_rhoexpvec, l_zetavec)
-    encounters = Array{Float64}(undef, reps, l_massvec, l_rhoexpvec, l_zetavec)
-    cons_maxgut = Array{Float64}(undef, l_massvec)
-    gaindiff = Array{Float64}(undef, reps, l_massvec, l_rhoexpvec, l_zetavec)
-    gainremainder = Array{Float64}(undef, reps, l_massvec, l_rhoexpvec, l_zetavec)
+    gains = Array{Float64}(undef, reps, l_massvec, l_rhoexpvec, l_zetavec);
+    costs = Array{Float64}(undef, reps, l_massvec, l_rhoexpvec, l_zetavec);
+    encounters = Array{Float64}(undef, reps, l_massvec, l_rhoexpvec, l_zetavec);
+    cons_maxgut = Array{Float64}(undef, l_massvec);
+    gaindiff = Array{Float64}(undef, reps, l_massvec, l_rhoexpvec, l_zetavec);
+    gainremainder = Array{Float64}(undef, reps, l_massvec, l_rhoexpvec, l_zetavec);
     
     # Run simulation over reps, mass, rhoexp, and zeta
     @showprogress 1 "Computing for gut type $current_gut_type ..." for r in 1:reps
@@ -316,9 +89,11 @@ for g in 1:n_gut
                     bcost_kJps, fcost_kJps = metabolic_cost(mass)
                     velocity = find_velocity(mass)
                     tmax_bout, _ = foragingtime(mass) .* (60 * 60)
-                    n = indperarea(mass)
+                    ndensity, n = indperarea(mass)
+                    width = reactionwidth(mass)
+                    height = reactionheight(mass)
                     
-                    m_res = rho * mu * (1 / beta)
+                    m_res = rho * mu * (1 / beta) * width * height
                     mprime = m_res / n
                     alphaprime = alpha * n^(zeta - 2)
                     
@@ -349,48 +124,19 @@ for g in 1:n_gut
     gaindiff_array[g] = gaindiff
     gainremainder_array[g] = gainremainder
     
-    # # Calculate slope for each rhoexp value
-    # remainder_rho_slope = Array{Float64}(undef, l_rhoexpvec)
-    # minmass = Array{Float64}(undef, l_rhoexpvec)
-    # for i in 1:l_rhoexpvec
-    #     # Take mean across reps (and using the first zeta value)
-    #     mean_gainremainder = vec(mean(gainremainder, dims=1)[:, :, i, 1])
-    #     positive_gainremainder = findall(x -> x > 0, mean_gainremainder)
-    #     if !isempty(positive_gainremainder)
-    #         minmass[i] = massvec[positive_gainremainder][1]
-    #     else
-    #         minmass[i] = NaN
-    #     end
-        
-    #     # Only perform the linear fit if there are enough positive points
-    #     if length(positive_gainremainder) > 17
-    #         x = log.(massvec[positive_gainremainder])[end-17:end]
-    #         y = log.(mean_gainremainder[positive_gainremainder])[end-17:end]
-    #         df = DataFrame(x = x, y = y)
-    #         model = lm(@formula(y ~ x), df)
-    #         # Extract coefficients: intercept and slope
-    #         intercept, slope = coef(model)
-    #         remainder_rho_slope[i] = slope
-    #     else
-    #         remainder_rho_slope[i] = NaN
-    #     end
-    # end
-    
-    # # Save the slope curve for the current gut type
-    # remainder_rho_slope_all[g, :] = remainder_rho_slope
 end
 
 
 #EXAMINE SLOPE EXTRACTION
 remainder_rho_slope_all = Array{Float64}(undef, n_gut, l_rhoexpvec);
-
+minmass_array = Array{Array{Float64}}(undef,n_gut)
 for g in 1:n_gut
-    gains = gains_array[g]
-    costs = costs_array[g]
-    encounters = encounters_array[g]
-    cons_maxgut = cons_maxgut_array[g]
-    gaindiff = gaindiff_array[g]
-    gainremainder = gainremainder_array[g]
+    gains = gains_array[g];
+    costs = costs_array[g];
+    encounters = encounters_array[g];
+    cons_maxgut = cons_maxgut_array[g];
+    gaindiff = gaindiff_array[g];
+    gainremainder = gainremainder_array[g];
 
     
     # Calculate slope for each rhoexp value
@@ -420,19 +166,29 @@ for g in 1:n_gut
             remainder_rho_slope[i] = NaN
         end
     end
+    minmass_array[g] = minmass
     # Save the slope curve for the current gut type
     remainder_rho_slope_all[g, :] = remainder_rho_slope
 end
 
 filename=smartpath("data/simdata/gainsremainder_acrossgut.jld2")
-@save filename gut_types n_gut massexpvec massvec l_massvec teeth mu alpha edensity p_bad configurations runs rhoexpvec l_rhoexpvec zetavec l_zetavec reps gains_array costs_array encounters_array cons_maxgut_array gaindiff_array gainremainder_array remainder_rho_slope_all minmass 
 
-@load filename gut_types n_gut massexpvec massvec l_massvec teeth mu alpha edensity p_bad configurations runs rhoexpvec l_rhoexpvec zetavec l_zetavec reps gains_array costs_array encounters_array cons_maxgut_array gaindiff_array gainremainder_array remainder_rho_slope_all minmass 
+@save filename gut_types n_gut massexpvec massvec l_massvec teeth mu alpha edensity p_bad configurations runs rhoexpvec l_rhoexpvec zetavec l_zetavec reps gains_array costs_array encounters_array cons_maxgut_array gaindiff_array gainremainder_array remainder_rho_slope_all minmass_array 
+
+@load filename gut_types n_gut massexpvec massvec l_massvec teeth mu alpha edensity p_bad configurations runs rhoexpvec l_rhoexpvec zetavec l_zetavec reps gains_array costs_array encounters_array cons_maxgut_array gaindiff_array gainremainder_array remainder_rho_slope_all minmass_array 
+
+
+#What is the minimum rho where ANY species can have a positive gain remainder?
+minrhoany_array = Array{Float64}(undef,n_gut)
+for g = 1:n_gut
+    minrhoany = rhoexpvec[findall(!isnan,minmass_array[1])[1]]
+    minrhoany_array[g] = minrhoany
+end
+
 
 
 gut_types_cap = ["Caecum","Colon","Non-rumen foregut","Rumen foregut"]
 gut_type_maxgutslope = [0.860,0.919,0.881,0.897];
-using LaTeXStrings
 pslope = plot(
     xlabel = L"Richness, $\rho$",
     ylabel = L"Forage excess exponent, $g_R \propto M^\gamma$",
@@ -440,7 +196,7 @@ pslope = plot(
     legend = :topright,
     foreground_color_legend = nothing
               )
-colors = palette(:auto, n_gut)  # Get exactly n_gut colors
+colors = palette(:tab10) #, n_gut)  # Get exactly n_gut colors
 for g in 1:n_gut
     col = colors[g]
     gutslope = gut_type_maxgutslope[g]
@@ -457,34 +213,69 @@ for g in 1:n_gut
     int = exp(intg)/exp(intc)
     exp_slope = 0.75 + ((int*(gutslope-0.75))*massvec[end]^(gutslope-0.75))/(int*massvec[end]^(gutslope-0.75) - 1)
     plot!(rhoexpvec, remainder_rho_slope_all[g, :], label=gut_types_cap[g], lw=2,color=col)
-    scatter!(pslope, [rhoexpvec[end]], [exp_slope],markersize=5,legend=false,color=col)
+    scatter!(pslope, [rhoexpvec[end]], [exp_slope],markersize=5,color=col,label="")
 end
-minrho = rhoexpvec[findall(x->x<100,minmass)][1]
+#Find the minimum rho where a mass < 100 results in a positive gain remainder
+#NOTE: Shouldn't minmass be a function of gut type? - no same across all! 04/07/25
+minrho = rhoexpvec[findall(x->x<100,minmass_array[3])][1]
 minrho_yvalues = collect(0.8:0.1:1.3)
 minrho_xvalues = repeat([minrho], outer=length(minrho_yvalues))
 # Add the line to the plot
 Plots.plot!(pslope, minrho_xvalues, minrho_yvalues,
     color=:orange,
     width=2,
-    linestyle = :dash)
-minrho = rhoexpvec[findall(x->x<500,minmass)][1]
+    linestyle = :dash,
+    label = "")
+minrho = rhoexpvec[findall(x->x<500,minmass_array[3])][1]
 minrho_yvalues = collect(0.8:0.1:1.3)
 minrho_xvalues = repeat([minrho], outer=length(minrho_yvalues))
 # Add the line to the plot
 Plots.plot!(pslope, minrho_xvalues, minrho_yvalues,
     color=:red,
     width=2,
-    linestyle = :dash)
+    linestyle = :dash,
+    label = "")
 display(pslope)
-Plots.savefig(pslope, string(homedir(),"/Dropbox/PostDoc/2024_herbforaging/figures/fig_gainsremainder_slope.pdf"))
+Plots.savefig(pslope, string(homedir(),"/Dropbox/PostDoc/2024_herbforaging/figures/fig_gainsremainder_slopev2.pdf"))
 
 
 
 
-guti = 4
-gainsi = vec(mean(gains_array[guti],dims=1)[:,:,end,1])
-costsi = vec(mean(costs_array[guti],dims=1)[:,:,end,1])
+rhovalue = 5; #1:231
+10 .^rhoexpvec[rhovalue]
+guti = 1
+zetai = 3
+gainsi = vec(mean(gains_array[guti],dims=1)[:,:,rhovalue,zetai]);
+costsi = vec(mean(costs_array[guti],dims=1)[:,:,rhovalue,zetai]);
 plot(log.(massvec),log.(gainsi))
+plot!(log.(massvec),log.(costsi))
+
+plot(log.(massvec),(gainsi - costsi))
+
+gainremainderi = gainsi .- costsi;
+plot(log.(massvec[gainremainderi .> 0]),log.(gainremainderi[gainremainderi .> 0]))
+
+#PLOT THE EFFECTIVE SLOPE
+x = log.(massvec[gainremainderi .> 0])
+y = log.(gainremainderi[gainremainderi .> 0])
+# Compute the midpoints for the x-values
+x_mid = (x[1:end-1] .+ x[2:end]) ./ 2
+# Calculate the finite differences as an approximation for the derivative
+slope = diff(y) ./ diff(x)
+# Plot the local slope against the midpoints
+using Plots
+plot(x_mid, slope, label = "Local Slope", xlabel = "log(mass)", ylabel = "d(log(gainremainder))/d(log(mass))",
+     title = "Local Slope via Finite Differences",
+     )
+plot!(collect(4:10),repeat([1.19],outer=length(collect(4:10))))
+plot!(collect(4:10),repeat([1.0],outer=length(collect(4:10))))
+
+
+
+plot!(log.(massvec),log.(costsi_highrho))
+
+
+
 plot!(log.(massvec),log.(edensity.*gut_capacity_g.(massvec, gut_types[guti])))
 
 plot(log.(massvec),log.(gainsi-costsi))

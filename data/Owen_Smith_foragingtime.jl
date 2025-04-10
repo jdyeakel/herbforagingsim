@@ -4,7 +4,7 @@ using GLM
 using Plots
 using Statistics
 
-file_path = joinpath(homedir(), "Dropbox", "PostDoc", "2024_Anna_bse", "data", "OwenSmith_foragingtime.csv")
+file_path = joinpath(homedir(), "Dropbox", "PostDoc", "2024_herbforaging","herbforagingsim", "data", "OwenSmith_foragingtime.csv")
 
 df = CSV.read(file_path, DataFrame)
 

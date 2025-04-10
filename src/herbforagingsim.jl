@@ -51,6 +51,8 @@ expectedlifetime,
 foragingtime,
 gut_turnover_time,
 dailyfoodintake,
+reactionwidth,
+reactionheight,
 
 dailyforage,
 withindaysim,
